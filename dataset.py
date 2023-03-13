@@ -20,10 +20,10 @@ class Data_WithContext:
         self.context_model = BertModel.from_pretrained("princeton-nlp/sup-simcse-bert-base-uncased").cuda()
     def load_train_and_dev_files(self, train_file, dev_file, hard_sample_con=False, noisy=False):
         print('Loading train data...')
-        train_set = self.load_file(train_file, "data/new_train_middle.json", hard_sample_con, noisy)
+        train_set = self.load_file(train_file, self.config.train_middle_path, hard_sample_con, noisy)
         print(len(train_set), 'train data loaded.')
         print('Loading dev data...')
-        dev_set = self.load_file(dev_file, "data/dev_middle.json", False, noisy)
+        dev_set = self.load_file(dev_file, self.config.dev_middle_path, False, noisy)
         print(len(dev_set), 'dev data loaded.')
         return train_set, dev_set
     def load_valid_files(self, valid_file, noisy=False):
