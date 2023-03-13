@@ -7,6 +7,7 @@ import pandas as pd
 from ace import cal_sim, Passage
 import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.char as nac
+import json
 
 
 class Data_WithContext:
@@ -19,10 +20,10 @@ class Data_WithContext:
         self.context_model = BertModel.from_pretrained("princeton-nlp/sup-simcse-bert-base-uncased").cuda()
     def load_train_and_dev_files(self, train_file, dev_file, hard_sample_con=False, noisy=False):
         print('Loading train data...')
-        train_set = self.load_file(train_file, hard_sample_con, noisy)
+        train_set = self.load_file(train_file, "data/new_train_middle.json", hard_sample_con, noisy)
         print(len(train_set), 'train data loaded.')
         print('Loading dev data...')
-        dev_set = self.load_file(dev_file, False, noisy)
+        dev_set = self.load_file(dev_file, "data/dev_middle.json", False, noisy)
         print(len(dev_set), 'dev data loaded.')
         return train_set, dev_set
     def load_valid_files(self, valid_file, noisy=False):
@@ -30,11 +31,14 @@ class Data_WithContext:
         valid_set = self.load_file(valid_file, False, noisy)
         print(len(valid_set), 'test data loaded.')
         return valid_set
-    def load_file(self, file_path, hard_construction=False, noisy=False) -> TensorDataset:
-        quo_list, reply_list, label_list = self.loaddata(file_path, hard_construction, noisy=noisy)
-        dataset = self._convert_sentence_pair_to_bert(quo_list, reply_list, label_list)
+    def load_file(self, file_path, outfilename, hard_construction=False, noisy=False) -> TensorDataset:
+        # quo_list, reply_list, label_list = self.loaddata(file_path, hard_construction, outfilename, noisy=noisy)
+        # dataset = self._convert_sentence_pair_to_bert(quo_list, reply_list, label_list)
+        with open(outfilename, "r") as read_f:
+            read_dict = json.load(read_f)
+            dataset = self._convert_sentence_pair_to_bert(read_dict["quo_list"], read_dict["reply_list"], read_dict["label_list"])
         return dataset
-    def loaddata(self, filename, hard_construction, noisy=False):
+    def loaddata(self, filename, hard_construction, outfilename, noisy=False, ):
         data_frame = pd.read_csv(filename, sep='#', header=None)
         quo_list, reply_list, label_list = [], [], []
         for index, row in tqdm(data_frame.iterrows()):
@@ -96,6 +100,9 @@ class Data_WithContext:
                 label_list.append(0)
             reply_list.append(reply_partcontext_list)
             quo_list.append(quo_partcontext)
+        json_out = {"quo_list": quo_list, "reply_list": reply_list, "label_list": label_list}
+        with open(outfilename, "w") as write_f:
+            write_f.write(json.dumps(json_out))
         return quo_list, reply_list, label_list
 
     def _selectblock(self, query, context, noisy):
