@@ -214,7 +214,7 @@ def get_path(path):
     if not os.path.exists(path):
         os.makedirs(path)
     return path
-def main_fun(config_file='config/hyparam.json'):
+def main_fun(config_file='/kaggle/working/CL_Interactive/config/hyparam.json'):
     """Main method for training.
     Args:
         distributed: if distributed train.
